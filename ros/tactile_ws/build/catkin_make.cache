@@ -1,0 +1,2 @@
+tactile_sensor
+-DCATKIN_DEVEL_PREFIX=/home/binghao/tactile_ws/devel -DCMAKE_INSTALL_PREFIX=/home/binghao/tactile_ws/install -G Unix Makefiles

@@ -1,0 +1,8 @@
+prefix=/home/binghao/tactile_ws/devel
+
+Name: tactile_sensor
+Description: Description of tactile_sensor
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 
