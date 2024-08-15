@@ -19,3 +19,9 @@ is initially ``ttyUSB0`` might suddenly become ``ttyUSB5``.
   5. Repeat with the rest of 3 arms.
 - To apply the changes, run ``sudo udevadm control --reload && sudo udevadm trigger``
 - If successful, you should be able to find ``right_robot_left_finger`` in your ``/dev``
+
+2. compile ros package
+   cd ros/tactile_ws
+   catkin_make
+
+3. rosrun tactile_sensor tactile_node_left
