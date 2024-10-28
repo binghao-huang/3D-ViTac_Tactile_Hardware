@@ -1,10 +1,40 @@
-# PYTHON
-cd python
-python3 multi_thread_contact.py
 
-# ROS
+# 3D ViTac: Learning Fine-Grained Manipulation with Visuo-Tactile Sensing
 
-1. setup multi thread tactile board name:
+#### Project Website: https://binghao-huang.github.io/3D-ViTac/
+
+This codebase contains python code and ros package for flexible tactile sensor in 3D-ViTac. To build the tactile sensors, follow the instructions below:
+[[Hardware Assembly Tutorial]](https://docs.google.com/document/d/1XGyn-iV_wzRmcMIsyS3kwcrjxbnvblZAyigwbzDsX-E/edit?tab=t.0#heading=h.ny8zu0pq9mxy)
+,[[Bills of Material]](https://docs.google.com/document/d/1auxwAbAnt88nG7HDqanr4JJreuAVkrhs1nK16VQaLpk/edit?tab=t.0#heading=h.ny8zu0pq9mxy)
+
+## 1. Firmware
+
+(1) Load the [arduino code](/arduino_code/MatrixArray.ino) to the arduino. 
+
+## 2. PYTHON(option 1)
+(1) Setup environment
+
+        pip install pyserical
+        pip install cv2
+        pip install threading
+        pip install scipy
+
+(2)Start python visualization
+
+        cd python
+        python3 multi_thread_contact.py
+
+## 3. ROS(option 2)
+1. compile ros package(Assuming you have already installed ROS1)
+
+        cd ros/tactile_ws
+        catkin_make
+
+3. rosrun tactile_sensor tactile_sensor.py
+
+## 4. Multi Sensors name setup (optional)
+
+1. setup multi thread tactile board name(Optional):
 - One issue that arises is the port each robot binds to can change over time, e.g. a robot that
 is initially ``ttyUSB0`` might suddenly become ``ttyUSB5``. 
 
@@ -19,9 +49,3 @@ is initially ``ttyUSB0`` might suddenly become ``ttyUSB5``.
   5. Repeat with the rest of 3 arms.
 - To apply the changes, run ``sudo udevadm control --reload && sudo udevadm trigger``
 - If successful, you should be able to find ``right_robot_left_finger`` in your ``/dev``
-
-2. compile ros package
-   cd ros/tactile_ws
-   catkin_make
-
-3. rosrun tactile_sensor tactile_node_left

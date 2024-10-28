@@ -1,7 +1,3 @@
-from ctypes import sizeof
-import os
-from socket import timeout
-from turtle import delay
 import numpy as np
 import serial
 import threading
@@ -124,16 +120,6 @@ if __name__ == '__main__':
 
         for i in range(300):
             if flag:
-                # print(contact_data_norm)
-                # contact_data_norm_scaled = (contact_data_norm * 255).astype(np.uint8)
-
-                # colormap = cv2.applyColorMap(contact_data_norm_scaled, cv2.COLORMAP_VIRIDIS)
-            # Apply Gaussian blur
-                
-
-                #contact_data_norm = apply_gaussian_blur(contact_data_norm)
-
-                # Apply temporal filter
                 temp_filtered_data = temporal_filter(contact_data_norm, prev_frame)
                 prev_frame = temp_filtered_data
 

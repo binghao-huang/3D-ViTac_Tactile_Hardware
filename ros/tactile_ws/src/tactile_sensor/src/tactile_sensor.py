@@ -1,73 +1,108 @@
-# #!/usr/bin/env python
+#!/usr/bin/env python
 
-# import rospy
-# from std_msgs.msg import Float64MultiArray
-# import numpy as np
-# import threading
-# import time
-
-# class TactileSensor:
-#     def __init__(self, tactile_names):
-#         self.tactile_name = tactile_names
-#         rospy.init_node('tactile_listener', anonymous=True)
-#         self.tactile_data = None  # Placeholder for the latest data received
-#         # Initialize subscriber
-#         for tactile_name in tactile_names:
-#             self.subscriber = rospy.Subscriber(f'{tactile_name}', Float64MultiArray, self.callback)
-    
-#     def callback(self, data):
-#         # Callback function that will be called when new data is published on the topic
-#         self.tactile_data = np.array(data.data).reshape((16, 16))  # Assuming data is a 16x16 matrix
-#         # You can add processing code here
-#         # print(f"Received data on {self.tactile_name}: {self.tactile_data}")
-    
-#     def get_latest_data(self):
-#         # Method to fetch the latest data received; returns None if no data has been received yet.
-#         return self.tactile_data
-
-
-# if __name__ == '__main__':
-#     tactile_names = ['right_robot_left_finger', 'right_robot_right_finger']
-#     tactile = TactileSensor(['right_robot_right_finger'])
-#     while not rospy.is_shutdown():
-#         print('right',tactile.tactile_right)
-#         time.sleep(0.1)
-#         # rospy.spin()
-
-import rospy
+import serial
 import numpy as np
-from std_msgs.msg import Float64MultiArray
+import cv2
 import time
+import rospy 
+import threading
+from std_msgs.msg import Float64MultiArray
 
-class TactileSensor:
-    def __init__(self, tactile_names):
-        self.tactile_names = tactile_names
-        rospy.init_node('tactile_listener', anonymous=True)
-        self.tactile_data = {}  # Use a dictionary to store data from each sensor
-        # Initialize subscribers for each tactile sensor
-        for tactile_name in tactile_names:
-            self.tactile_data[tactile_name] = None  # Initialize with None
-            rospy.Subscriber(tactile_name, Float64MultiArray, self.callback, callback_args=tactile_name)
+def temporal_filter(new_frame, prev_frame, alpha=1):
+    """
+    Apply temporal smoothing filter.
+    'alpha' determines the blending factor.
+    A higher alpha gives more weight to the current frame, while a lower alpha gives more weight to the previous frame.
+    """
+    return alpha * new_frame + (1 - alpha) * prev_frame
 
-    def callback(self, data, tactile_name):
-        # Callback function that will be called when new data is published on the topic
-        # Here we use callback_args to distinguish between sensors
-        self.tactile_data[tactile_name] = np.array(data.data).reshape((16, 16))  # Assuming data is a 16x16 matrix
+def tactile_publisher(tactile_name, alpha=None):
+    mean = np.zeros((16, 16))
+    # Open the serial port
+    serDev = serial.Serial(f'{tactile_name}',2000000)
+    
+    serDev.flush()
 
-    # def get_latest_data(self, tactile_name):
-    #     # Method to fetch the latest data received for a specific sensor
-    #     return self.tactile_data.get(tactile_name, None)
+    # Create a publisher object
+    tactile_pub = rospy.Publisher(f'{tactile_name}', Float64MultiArray, queue_size=10)
+    # Define the rate of publishing
+    rate = rospy.Rate(30)  # 30Hz
+    print("Start")
+    data_tac = []
+    num = 0
+    t1=0
+    backup = None
+    flag=False
+    current = None
+    while True:
+        if serDev.in_waiting > 0:
+            try:
+                line = serDev.readline().decode('utf-8').strip()
+            except:
+                line = ""
+            if len(line) < 10:
+                if current is not None and len(current) == 16:
+                    backup = np.array(current)
+                    print("fps",1/(time.time()-t1))
+                    t1 =time.time()
+                    data_tac.append(backup)
+                    num += 1
+                    if num > 20:
+                        break
+                current = []
+                continue
+            if current is not None:
+                str_values = line.split()
+                int_values = [int(val) for val in str_values]
+                matrix_row = int_values
+                current.append(matrix_row) 
 
+    data_tac = np.array(data_tac)
+    median = np.median(data_tac, axis=0)
+    flag=True
+    print(f"{tactile_name} Finish Initialization!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!")
+    current = None
+    prev_frame = np.zeros_like(median)
+    while True:
+        if serDev.in_waiting > 0:
+            try:
+                line = serDev.readline().decode('utf-8').strip()
+            except:
+                line = ""
+            # print(len(line))
+            if len(line) < 10:
+                if current is not None and len(current) == 16:
+                    backup = np.array(current)
+                current = []
+                if backup is not None:
+                    contact_data= backup-median-12
+                    contact_data = np.clip(contact_data, 0, 100)
+                    
+                    if np.max(contact_data) < 12:
+                        contact_data_norm = contact_data /100
+                    else:
+                        contact_data_norm = contact_data / np.max(contact_data)
+                    if alpha is not None:
+                        contact_data_norm = temporal_filter(contact_data_norm, prev_frame, alpha=alpha)
+                        prev_frame = contact_data_norm
+                    tactile_msg = Float64MultiArray()
+                    tactile_msg.data = contact_data_norm.flatten().tolist()
+                    # Publish the message
+                    tactile_pub.publish(tactile_msg)
+                    # print("fps",1/(time.time()-t1))
+                    # t1 =time.time()
+                continue
+            if current is not None:
+                str_values = line.split()
+                int_values = [int(val) for val in str_values]
+                matrix_row = int_values
+                current.append(matrix_row) 
+                continue
 
 if __name__ == '__main__':
-    tactile_names = ['right_robot_left_finger']
-    tactile_sensor = TactileSensor(tactile_names)
+    rospy.init_node('tactile_publisher', anonymous=True)
+    right_robot_left_finger_Thread = threading.Thread(target=tactile_publisher, args=('USBtty0',0.5,))
+    right_robot_left_finger_Thread.daemon = True
+    right_robot_left_finger_Thread.start()
     while not rospy.is_shutdown():
-        # Print the latest data for each sensor
-        t1 = time.time()
-        print('right_robot_left_finger:', tactile_sensor.tactile_data['right_robot_left_finger'])
-        # print('right_robot_right_finger:', tactile_sensor.get_latest_data('right_robot_right_finger'))
-        print(1/(time.time()-t1))
-        # for name in tactile_names:
-        #     print(f'{name}: {tactile_sensor.get_latest_data(name)}')
-        # time.sleep(0.1)  # Sleep to limit the rate of the output
+        rospy.spin()
