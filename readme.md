@@ -49,3 +49,7 @@ is initially ``ttyUSB0`` might suddenly become ``ttyUSB5``.
   5. Repeat with the rest of 3 arms.
 - To apply the changes, run ``sudo udevadm control --reload && sudo udevadm trigger``
 - If successful, you should be able to find ``right_robot_left_finger`` in your ``/dev``
+
+
+## 🏷️ License
+This repository is released under the MIT license. See [LICENSE](LICENSE) for additional details.
