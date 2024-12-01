@@ -14,8 +14,8 @@ This codebase contains python code and ros package for flexible tactile sensor i
 ## 2. PYTHON(option 1)
 (1) Setup environment
 
-        pip install pyserical
-        pip install cv2
+        pip install pyserial
+        pip install opencv-python
         pip install threading
         pip install scipy
 
