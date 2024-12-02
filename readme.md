@@ -15,7 +15,7 @@ This codebase contains python code and ros package for flexible tactile sensor i
 (1) Setup environment
 
         pip install pyserial
-        pip install opencv-python
+        pip install opencv-python==4.6.0.66
         pip install threading
         pip install scipy
 
@@ -41,11 +41,11 @@ is initially ``ttyUSB0`` might suddenly become ``ttyUSB5``.
 - Take ``right_robot_left_finger``: right master robot as an example:
   1. Find the port that the right master robot is currently binding to, e.g. ``ttyUSB0``
   2. run ``udevadm info --name=/dev/ttyUSB0 --attribute-walk | grep serial`` to obtain the serial number. Use the first one that shows up, the format should look similar to ``FT6S4DSP``.
-  3. ``sudo vim /etc/udev/rules.d/99-fixed-interbotix-udev.rules`` and add the following line: 
+  3. ``sudo vim /etc/udev/rules.d/99-tactile.rules`` and add the following line: 
 
          SUBSYSTEM=="tty", ATTRS{serial}=="<serial number here>", ENV{ID_MM_DEVICE_IGNORE}="1", ATTR{device/latency_timer}="1", SYMLINK+="right_robot_left_finger"
 
-  4. This will make sure the right master robot is *always* binding to ``ttyDXL_master_right``
+  4. This will make sure the tactile in right_robot_left_finger is *always* binding to ``right_robot_left_finger``
   5. Repeat with the rest of 3 arms.
 - To apply the changes, run ``sudo udevadm control --reload && sudo udevadm trigger``
 - If successful, you should be able to find ``right_robot_left_finger`` in your ``/dev``
