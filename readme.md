@@ -52,4 +52,4 @@ is initially ``ttyUSB0`` might suddenly become ``ttyUSB5``.
 
 
 ## 🏷️ License
-Flexible Tactile Hardware of 3D-ViTac © 2024 by Columbia Robotic Perception, Interaction, and Learning Lab (RoboPIL) is licensed under CC BY-NC 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/
+FlexiTac © 2025 by Columbia University is licensed under CC BY-NC 4.0. To view a copy of this license, visit https://creativecommons.org/licenses/by-nc/4.0/
